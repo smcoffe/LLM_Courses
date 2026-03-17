@@ -85,6 +85,8 @@ December\fi, \number \year}
         \item \textbf{Implement ReAct:} Build interleaved Thought-Action-Observation loops.
         \item \textbf{Enforce Structure:} Use XML delimiters and JSON schemas for valid tool calls.
         \item \textbf{Apply Reflexion:} Create self-correcting agents that learn from tool failures.
+        \item \textbf{Leverage Reasoning Models:} Apply chain-of-thought and extended thinking appropriately.
+        \item \textbf{Deploy with MCP:} Integrate Model Context Protocol servers for dynamic tool discovery.
     \end{itemize}
 \end{frame}
 
@@ -146,6 +148,49 @@ December\fi, \number \year}
     \end{enumerate}
     \centering
     \textit{"A senior agent is just a junior agent that has failed and reflected a thousand times."}
+\end{frame}
+
+% --- NEW: Reasoning Models in Practice ---
+\begin{frame}{Reasoning Models in Practice}
+    \begin{block}{When to use a reasoning model}
+        Use reasoning (``thinking'') models for tasks requiring multi-step deduction, math, code review, or planning. Avoid for low-latency/high-volume tasks.
+    \end{block}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Prompting tip:} Do \emph{not} force step-by-step in the prompt --- the model produces its own internal chain-of-thought. Provide clear goals and constraints instead.
+        \item \textbf{Budget tokens:} APIs expose a ``thinking budget'' (Claude) or ``reasoning\_effort'' (OpenAI) parameter to trade cost for accuracy.
+        \item \textbf{Verification loop:} Pair a reasoning model with a fast model: the fast model proposes, the reasoning model verifies.
+        \item \textbf{Models (2025--2026):} o3 (OpenAI), DeepSeek-R1, Claude 3.7 Sonnet (extended thinking), Gemini 2.5 Pro.
+    \end{itemize}
+\end{frame}
+
+% --- NEW: Structured Output ---
+\begin{frame}{Structured Output: Forcing JSON}
+    \textbf{Why it matters:} Agents must pass data between steps reliably. Free-text output breaks pipelines.
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{JSON Mode / Structured Output API:} OpenAI, Anthropic, and Google all support constrained decoding to a JSON schema, guaranteeing valid output.
+        \item \textbf{Tool/Function Calling:} Model emits a structured \texttt{tool\_use} block; the host executes the function and feeds results back.
+        \item \textbf{Best Practice:} Define a Pydantic model (Python) $\rightarrow$ serialize to JSON Schema $\rightarrow$ pass to API. Libraries like \texttt{instructor} automate this.
+    \end{itemize}
+    \begin{exampleblock}{Example}
+        \texttt{response\_format=\{"type": "json\_schema", "json\_schema": \{...\}\}}
+    \end{exampleblock}
+\end{frame}
+
+% --- NEW: Model Context Protocol (MCP) ---
+\begin{frame}{Model Context Protocol (MCP)}
+    \begin{block}{What is MCP?}
+        An open standard (Anthropic, 2024) that lets LLM applications connect to external tools, data, and services through a uniform interface --- no custom glue code per integration.
+    \end{block}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Architecture:} MCP \emph{Hosts} (Claude Desktop, IDEs) $\leftrightarrow$ MCP \emph{Servers} (filesystem, databases, APIs).
+        \item \textbf{Primitives:} \textbf{Tools} (executable functions), \textbf{Resources} (data contexts), \textbf{Prompts} (reusable templates).
+        \item \textbf{Dynamic Discovery:} Agents query MCP servers at runtime for available tools --- no hard-coded tool lists.
+        \item \textbf{Adoption (2025):} GitHub, Google Drive, Slack, and hundreds of community servers available.
+        \item \textbf{Implication:} Dramatically lowers integration cost for agentic systems.
+    \end{itemize}
 \end{frame}
 
 
@@ -563,7 +608,7 @@ December\fi, \number \year}
         \item **Multi-Agent Systems (MAS):** Emerge when multiple AI agents cooperate to solve intricate problems more efficiently than a single agent .
         \item **Orchestration Frameworks:** Crucial for managing and coordinating agent interactions.
         \begin{itemize}
-            \item Examples: IBM watsonx Orchestrate, Microsoft Power Automate, LangChain .
+            \item Examples: LangGraph (stateful graph-based), CrewAI (role-based), AutoGen (Microsoft, multi-agent conversations), Strands Agents SDK (Anthropic), LangChain.
             \item Can involve centralized control (primary agent directs sub-agents) or decentralized approaches (agents make independent decisions/consensus) .
         \end{itemize}
     \end{itemize}
@@ -661,10 +706,11 @@ December\fi, \number \year}
 \begin{frame}
     \frametitle{Future Trends: Emergence of Multimodal LLMs in Production}
     \begin{itemize}
-        \item **Transformation:** Rapid progress in Multimodal Large Language Models (MLLMs) is reshaping the AI landscape .
-        \item **Integration:** Combine pre-trained LLMs with specialized encoders for images, audio, and video .
-        \item **Richer Context Comprehension:** Leverages complementary information from diverse sources .
-        \item **Capabilities:** Retain reasoning and decision-making of traditional LLMs while empowering multimodal tasks (e.g., image-text understanding, video-text processing, speech/audio-text output) .
+        \item **Transformation:** Rapid progress in Multimodal Large Language Models (MLLMs) is reshaping the AI landscape.
+        \item **Integration:** Combine pre-trained LLMs with specialized encoders for images, audio, and video.
+        \item **Richer Context Comprehension:** Leverages complementary information from diverse sources.
+        \item **Capabilities:** Retain reasoning and decision-making of traditional LLMs while empowering multimodal tasks (e.g., image-text understanding, video-text processing, speech/audio-text output).
+        \item **2025 Milestone:** Native multimodal models (GPT-4o, Gemini 2.5) support real-time voice, screen understanding, and document analysis in production agentic pipelines.
     \end{itemize}
 \end{frame}
 

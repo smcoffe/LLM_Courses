@@ -129,18 +129,36 @@ December\fi, \number \year}
 \end{frame}
 
 % --- Slide 5: The 2026 Model Landscape ---
-\begin{frame}{Choosing the Right "Brain"}
+\begin{frame}{Choosing the Right "Brain" (2026)}
     \begin{table}[]
         \centering
+        \tiny
         \begin{tabular}{@{}lll@{}}
             \toprule
-            \textbf{Model Class} & \textbf{Best For...} & \textbf{Examples} \\ \midrule
-            \textbf{Reasoning Models} & Complex Logic / Planning & Gemini 1.5 Pro, GPT-o1 \\
-            \textbf{General Purpose} & Tool Use / Transformation & GPT-4o, Claude 3.5 Sonnet \\
-            \textbf{Small Language Models} & High Speed / Edge Use & Llama 3.1 8B, Phi-3 \\
-            \textbf{Embedding Models} & Vector Search / RAG & text-embedding-3-large \\ \bottomrule
+            \textbf{Model Class} & \textbf{Best For...} & \textbf{Examples (2026)} \\ \midrule
+            \textbf{Reasoning Models} & Complex Logic / Planning & o3, DeepSeek-R1, Claude 3.7 (thinking) \\
+            \textbf{General Purpose} & Tool Use / Transformation & GPT-4o, Claude 3.7 Sonnet, Gemini 2.5 Pro \\
+            \textbf{Multimodal Models} & Vision / Audio / Video & GPT-4o, Gemini 2.5, Qwen2.5-VL \\
+            \textbf{Small Language Models} & High Speed / Edge Use & Llama 3.3 8B, Phi-4, Gemma 3 \\
+            \textbf{Mixture-of-Experts} & Efficiency at Scale & DeepSeek-V3, Mixtral 8x22B \\
+            \textbf{Embedding Models} & Vector Search / RAG & text-embedding-3-large, voyage-3 \\ \bottomrule
         \end{tabular}
     \end{table}
+\end{frame}
+
+% --- NEW: Reasoning Models and Test-Time Compute ---
+\begin{frame}{Reasoning Models: Test-Time Compute}
+    \begin{block}{Paradigm Shift: Scale at Inference, Not Just Training}
+        Models like \textbf{o3}, \textbf{DeepSeek-R1}, and \textbf{Claude 3.7 (extended thinking)} spend
+        more tokens \emph{thinking before answering}, trading latency for accuracy.
+    \end{block}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Chain-of-Thought (CoT):} Model generates intermediate reasoning steps.
+        \item \textbf{Extended Thinking:} A hidden scratchpad of ``thinking tokens'' before the final reply.
+        \item \textbf{Reinforcement Learning from Verifiable Rewards:} Models trained to self-verify answers (math, code).
+        \item \textbf{Trade-off:} Higher latency and cost; avoid for simple tasks, critical for complex logic.
+    \end{itemize}
 \end{frame}
 
 
@@ -200,9 +218,20 @@ December\fi, \number \year}
         \note[item]{From scratch vs pre-trained vs pre-trained with fine-tuning}
         \item BERT (Bidirectional Encoder Representations from Transformers) \note[item]{BERT is encoder only}
         \item GPT (Generative Pretrained Transformer) \note[item]{GPT is decoder only}
-        \item BART (Bidirectional and Auto-Regressive Transformers) 
+        \item BART (Bidirectional and Auto-Regressive Transformers)
         \item T5 (Text-to-Text Transfer Transformer) \note[item]{T5 and BART are encoder-decoder}
         \note[item]{Be aware of bias in pre-trained models, even ones that aren't trained on the entire internet (good and bad), and fine-tuning can't erase.}
+    \end{itemize}
+\end{frame}
+
+% --- NEW: Modern Architecture Improvements ---
+\begin{frame}{Modern Architecture Advances}
+    \small
+    \begin{itemize}
+        \item \textbf{Rotary Position Embeddings (RoPE):} Encodes relative position via rotation matrices; used by LLaMA, Mistral, and most modern decoder-only models. Generalizes better to longer sequences than sinusoidal.
+        \item \textbf{Grouped Query Attention (GQA):} Shares Key/Value heads across groups of Query heads, drastically reducing KV-cache memory during inference (used in LLaMA 3, Gemma).
+        \item \textbf{Flash Attention (v1/v2/v3):} Memory-efficient exact attention via tiling and kernel fusion on GPU; 2--8$\times$ faster than naive attention, enables longer contexts.
+        \item \textbf{Mixture of Experts (MoE):} Sparse gating activates only a subset of FFN ``experts'' per token; DeepSeek-V3 (671B total, 37B active) matches dense models at a fraction of compute.
     \end{itemize}
 \end{frame}
 
@@ -480,6 +509,26 @@ December\fi, \number \year}
 \end{itemize}
 \end{frame}
 
+% --- NEW: Long Context Windows 2025-2026 ---
+\begin{frame}{The Long Context Revolution}
+    \begin{block}{Context Window Growth}
+        \begin{tabular}{@{}ll@{}}
+            \toprule
+            \textbf{Model} & \textbf{Context Window} \\ \midrule
+            GPT-3 (2020) & 2,048 tokens \\
+            Claude 2 (2023) & 100K tokens \\
+            Gemini 1.5 Pro (2024) & 1,000,000 tokens \\
+            Gemini 2.5 Pro (2025) & 1,000,000+ tokens \\ \bottomrule
+        \end{tabular}
+    \end{block}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Enables:} Full codebase reasoning, entire book summarization, long-run agents.
+        \item \textbf{Caveat:} ``Lost in the middle'' effect --- models attend poorly to the middle of very long contexts.
+        \item \textbf{KV-Cache:} GPU memory for storing past Key/Value tensors grows linearly with context; GQA and quantization are key mitigations.
+    \end{itemize}
+\end{frame}
+
 \section{Transformers}
 \begin{frame}{What are Transformers?}
 \centering
@@ -507,6 +556,32 @@ December\fi, \number \year}
     \item RLHF: aligns output with human preferences.
     \item Human feedback trains a reward model.
   \end{itemize}
+\end{frame}
+
+% --- NEW: DPO, GRPO, and Modern Alignment ---
+\begin{frame}{Modern Alignment Techniques}
+    \begin{itemize}
+        \item \textbf{Direct Preference Optimization (DPO):} Skips the explicit reward model; directly optimizes the policy on ``chosen'' vs.\ ``rejected'' response pairs. Simpler than RLHF, widely adopted (Llama 3, Mistral).
+        \item \textbf{Group Relative Policy Optimization (GRPO):} Used by DeepSeek-R1; generates a \emph{group} of responses per prompt and uses their relative scores as advantage estimates --- no critic/value network required.
+        \item \textbf{Constitutional AI (CAI):} Anthropic's technique using a written set of principles to guide RLHF self-critique and revision, reducing reliance on human labelers for safety.
+        \item \textbf{Takeaway:} Modern alignment has moved from large human-label pipelines toward verifiable reward signals and self-critique loops.
+    \end{itemize}
+\end{frame}
+
+% --- NEW: Multimodal LLMs ---
+\begin{frame}{Multimodal LLMs}
+    \begin{itemize}
+        \item \textbf{Definition:} Models that process and generate across multiple modalities --- text, image, audio, video.
+        \item \textbf{Architecture:} Typically a pretrained vision encoder (e.g., ViT) aligned to the LLM via a projection layer (e.g., LLaVA, CogVLM) or natively trained (GPT-4o, Gemini).
+        \item \textbf{Capabilities in 2025--2026:}
+            \begin{itemize}
+                \item Real-time speech-to-speech (GPT-4o voice, Gemini Live).
+                \item Document/diagram understanding.
+                \item Video understanding and frame reasoning.
+                \item Native image generation integrated into the same model.
+            \end{itemize}
+        \item \textbf{Implication for Agents:} Agents can now perceive screenshots, diagrams, and sensor streams --- not just text.
+    \end{itemize}
 \end{frame}
 
 % Slide 9: Beam Search, Temperature, etc.
