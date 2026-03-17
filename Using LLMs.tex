@@ -1,0 +1,1085 @@
+\documentclass{beamer}       % print frame + notes
+%\documentclass[notes=only]{beamer}   % only notes
+\setbeamertemplate{navigation symbols}[horizontal]
+%\documentclass[aspectratio=169]{beamer}
+\usepackage{pgfpages}
+% Comment out both 'show notes' commands to hide notes
+%\setbeameroption{show notes on second screen=right}
+%\setbeameroption{show notes}
+\usetheme{d2s}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage[export]{adjustbox}
+\usepackage{listings}  
+\usepackage{xcolor}
+\usepackage{svg}
+\usepackage{upquote}
+\usepackage{emoji}
+\setemojifont{TwemojiMozilla}
+
+\newcommand{\huggingface}{HuggingFace\emoji{hugging-face} }
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{numbercolor}{rgb}{0.5,0.5,0.5}
+\definecolor{stringcolor}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{numbercolor},
+    stringstyle=\color{stringcolor},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\newcommand{\monthyeardate}{\ifcase \month \or January\or February\or March\or %
+April\or May \or June\or July\or August\or September\or October\or November\or %
+December\fi, \number \year} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Information for Title Slide %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title[]{Agentic AI Bootcamp}
+\subtitle[] % Text in bracket will be in footline
+{Using LLMs}
+\author[] % Text in bracket will be in footline, empty brackets to hide from footline
+{MAJ Sean Coffey} % Separate authors with \and
+\institute
+{Army Cyber Institute, U.S. Military Academy}
+\date{\monthyeardate}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title Slide %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\DivisionLogo
+\begin{frame}[plain,noframenumbering]
+    \titlepage
+    \note{Welcome to the course! I hope you get something good out of this, but feel free to provide your honest feedback at the end so we can make this better, because this is our first time teaching this material and we can always learn and improve.
+    }
+\end{frame}
+}
+
+% --- Slide 1: Learning Objectives ---
+\begin{frame}{Learning Objectives}
+    By the end of this module, you will be able to:
+    \begin{itemize}
+        \item \textbf{Architect Roles:} Define the hierarchy of System, User, and Assistant messages.
+        \item \textbf{Implement ReAct:} Build interleaved Thought-Action-Observation loops.
+        \item \textbf{Enforce Structure:} Use XML delimiters and JSON schemas for valid tool calls.
+        \item \textbf{Apply Reflexion:} Create self-correcting agents that learn from tool failures.
+    \end{itemize}
+\end{frame}
+
+% --- Slide 2: The Message Hierarchy ---
+\begin{frame}{The Message Hierarchy: System, User, Assistant}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{System (The Constitution)}
+            \begin{itemize}
+                \item Role: "You are a Cyber Ops Analyst."
+                \item Tools: "You have access to Nmap and Shodan."
+                \item Boundaries: "Never execute write actions."
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{User (The Work Order)}
+            \begin{itemize}
+                \item "Scan 192.168.1.0/24 for open port 22."
+            \end{itemize}
+            \textbf{Assistant (The Memory)}
+            \begin{itemize}
+                \item Previous logs and "Few-Shot" examples of successful tool usage.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --- Slide 3: The ReAct Pattern ---
+\begin{frame}{The ReAct Pattern: Reasoning + Acting}
+    \centering
+    
+    \vspace{0.3cm}
+    \begin{block}{The Cognitive Loop}
+        \textbf{Thought:} "I need to find the user's IP. I will use the \texttt{get\_ip} tool." \\
+        \textbf{Action:} \texttt{get\_ip(user\_id="123")} \\
+        \textbf{Observation:} \texttt{"10.0.0.5"} \\
+        \textbf{Thought:} "Now that I have the IP, I will check the firewall logs."
+    \end{block}
+\end{frame}
+
+% --- Slide 4: Structuring for Machines ---
+\begin{frame}{Structuring for Machines: Delimiters \& JSON}
+    \textbf{Problem:} Models can "leak" instructions into their output or misinterpret data as rules. \\
+    \textbf{Solution:} Use XML-like tags to isolate context.
+    
+    \begin{exampleblock}{Example Structured Prompt}
+        \texttt{<SYSTEM\_PROMPT>} ...rules... \texttt{</SYSTEM\_PROMPT>} \\
+        \texttt{<DATA\_CONTEXT>} [Raw RF Signal Data] \texttt{</DATA\_CONTEXT>} \\
+        \texttt{<OUTPUT\_FORMAT>} Return only valid JSON. \texttt{</OUTPUT\_FORMAT>}
+    \end{exampleblock}
+\end{frame}
+
+% --- Slide 5: Reflexion: The Self-Correction Loop ---
+\begin{frame}{Reflexion: Higher-Order Agency}
+    \begin{enumerate}
+        \item \textbf{Actor:} Generates an initial response or code block.
+        \item \textbf{Evaluator:} Checks the output against unit tests or safety rules.
+        \item \textbf{Reflexion:} If it fails, the agent writes a "Lesson Learned" and retries.
+    \end{enumerate}
+    \centering
+    \textit{"A senior agent is just a junior agent that has failed and reflected a thousand times."}
+\end{frame}
+
+
+\section{Introduction: The Evolving Landscape of LLM Deployment}
+
+\begin{frame}
+    \frametitle{LLM Impact and Challenges}
+    \begin{itemize}
+        \item LLMs have transformed AI, enhancing search, recommendation, and chatbot applications, and enabling emergent abilities like reasoning and planning in advanced systems (e.g., robotics, autonomous agents).
+        \item **Challenges in Production:**
+        \begin{itemize}
+            \item Unpredictable failures due to probabilistic token generation.
+            \item High inference costs, substantial hardware demands, and slow training/inference.
+            \item Prompt engineering trade-offs: detailed prompts can degrade latency and accuracy.
+            \item Difficulty in consistently following complex conditional rules.
+            \item Managing coherent and logically consistent long-form outputs.
+            \item Necessitates LLMOps, extending MLOps for security, scalability, and ethical considerations.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLM Scale vs. Deployability \& Prompts as Dynamic "Models"}
+    \begin{itemize}
+        \item **Scale vs. Deployability:**
+        \begin{itemize}
+            \item Larger LLMs offer superior performance but incur significant operational overheads (slow training/inference, extensive hardware, higher running costs).
+            \item Focus shifts to inference optimization and cost-efficiency to bridge the gap between potential and applicability.
+        \end{itemize}
+        \item **Prompts as Dynamic "Models":**
+        \begin{itemize}
+            \item The prompt is an integral, dynamic part of the deployed "model" in production.
+            \item Prompt engineering directly impacts performance, output quality, latency, and accuracy.
+            \item Management extends beyond neural network weights to include prompt versions, external tool configurations, and RAG data .
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Price}
+    
+        \begin{figure}
+        \includegraphics[width=0.1\textwidth,center]{Images/h100 price.PNG}
+        \end{figure}
+\end{frame}
+
+\begin{frame}{Price}
+    
+
+        \begin{figure}
+        \includegraphics[width=0.5\textwidth,center]{Images/h200 price.PNG}
+        \end{figure}
+
+\end{frame}
+
+
+\begin{frame}{Price}
+    
+        \begin{figure}
+        \includegraphics[width=1.1\textwidth,center]{Images/GPU_per_hour.PNG}
+        \end{figure}
+
+\end{frame}
+
+\begin{frame}{Price}
+    
+        \begin{figure}
+        \includegraphics[width=1.1\textwidth,center]{Images/GPUQuote.PNG}
+        \end{figure}
+
+\end{frame}
+
+\section{Foundational Architectures and LLMOps for Production-Grade LLMs}
+
+\begin{frame}
+    \frametitle{LLM Production Architectures and Design Patterns}
+    \tiny
+    \begin{itemize}
+        \item **Hybrid Architectural Approach:** Utilizes a Directed Acyclic Graph (DAG) workflow to guide agent behavior, ensuring compliance with complex rules.
+        \item **Modular Design:**
+        \begin{itemize}
+        \tiny
+            \item LLM calling nodes with specific system prompts (e.g., Markdown formatting).
+            \item Custom computational routines to manage conversational history and mitigate hallucination.
+            \item LLMs can invoke external tools via natural-language descriptions; constrained decoding ensures compatibility.
+            \item Breaks down complex workflows into manageable, task-specific modules.
+        \end{itemize}
+        \item **Orchestration Layer:** The "intelligence" increasingly resides in this layer (DAGs, prompt routers, tool invocation logic) to compensate for LLM limitations.
+        \item **Prompt Routing:** Classifies incoming queries and directs them to specialized, task-specific templates, using general-purpose or fine-tuned LLMs for routing.
+        \item **Efficient Context Management:** Selectively incorporates recent messages, summarizes conversations, and dynamically updates summaries to improve performance and mitigate hallucination.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The LLMOps Lifecycle: Bridging Research to Reality}
+    \begin{itemize}
+        \item **LLMOps Defined:** A specialized framework within MLOps for managing the unique lifecycle of LLMs.
+        \item **Distinctions from MLOps:**
+        \begin{itemize}
+            \item Relies on transfer learning from pre-trained models.
+            \item Indispensable role of human feedback for evaluation.
+            \item Cost focus shifts from model training to inference.
+        \end{itemize}
+        \item **Addresses Challenges:** Model drift, evolving security (adversarial threats, PII leakage), complex ethical considerations, and scalability for vast datasets and computational requirements.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMOps Lifecycle: Data Management}
+    \begin{itemize}
+        \item **High-Quality Data:** Fundamental for LLMs, often from diverse domains and languages.
+        \item **Meticulous Preparation:** Cleaning missing values, correcting errors, removing duplicates, normalizing inputs.
+        \item **Domain-Specific Adaptation:** Relies on careful data curation and managing mixture ratios during training.
+        \item **Synthetic Data:** Generated by LLMs to augment datasets, especially in low-resource settings.
+        \item **Risks of Synthetic Data:** "Model collapse," biased or low-quality data; human involvement in labeling and quality assurance remains necessary.
+        \item **Data Flywheel:** User interactions and feedback continuously generate new data, informing retraining, fine-tuning, or prompt optimization, counteracting model drift.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMOps Lifecycle: Model Training \& Fine-tuning}
+    \tiny
+    \begin{itemize}
+        \item **Adaptation is Central:** Moving from static, generic models to dynamic, domain-specific, and task-adaptive solutions .
+        \item **Multiple Training Stages:** Each stage contributes to the final outcome.
+        \item **Parametric Knowledge Adaptation:** Updates LLM parameters through:
+        \begin{itemize}
+        \tiny
+            \item Domain-Adaptive Pre-Training (DAPT).
+            \item Instructional Tuning (IT).
+            \item Preference Learning (PL) via human or model feedback.
+        \end{itemize}
+        \item **Semi-Parametric Knowledge Adaptation:** Augments LLMs with external information via Retrieval-Augmented Generation (RAG) or agent-based systems.
+        \item **Necessity of Training:** While prompt engineering helps, actual model training is often necessary for robust performance.
+        \item **Parameter-Efficient Fine-tuning:** Critical for optimizing performance and efficiency.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMOps Lifecycle: Deployment}
+    \begin{itemize}
+        \item **Practical Checklist:**
+        \begin{itemize}
+            \item Define objectives and success metrics.
+            \item Establish robust observability and monitoring frameworks.
+            \item Optimize infrastructure for scalability.
+            \item Implement comprehensive security measures.
+            \item Systematically gather and analyze user feedback.
+            \item Conduct rigorous testing and validation.
+        \end{itemize}
+        \item **Deployment Patterns:**
+        \begin{itemize}
+            \item **Serverless Architectures:** AWS Lambda, Google Cloud Functions, Azure Functions offer elastic scalability and pay-per-request models.
+            \item **Limitations of Serverless:** Potential cold start latency, stateless application requirements, restricted input sources.
+            \item **Microservices Architectures:** Enable modular deployment and integration of LLM components.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMOps Lifecycle: Monitoring \& Maintenance}
+    \begin{itemize}
+        \item **Continuous Monitoring:** Paramount for LLM performance and behavior in production.
+        \item **Detecting Model Drift:** Proactive identification of undesirable changes in data distribution or model behavior over time is crucial for long-term stability.
+        \item **Cybersecurity Risks:** Persistent threats necessitate continuous monitoring and robust measures against adversarial attacks .
+        \item **Human Judgment (HITL):** Indispensable for data labeling, quality evaluation, and bias mitigation .
+        \item **Strategic Human Involvement:** Efficient mechanisms for integrating human expertise are critical for subjective quality assessments and complex ethical considerations.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMOps Lifecycle: Model Versioning and Governance Strategies}
+    \begin{itemize}
+        \item **Robust Lifecycle Management:** Necessary due to LLM complexity (billions of parameters, vast datasets).
+        \item **Model Versioning:** Ensures reproducibility, tracks changes, and allows reliable rollbacks.
+        \item **Comprehensive Governance:** Essential for an auditable and defensible LLM lifecycle.
+        \item **Includes:** Managing access controls, detailed logging of data and model interactions, and secure protocols for sensitive information.
+    \end{itemize}
+\end{frame}
+
+\section{Optimizing Performance and Cost in LLM Production}
+
+\begin{frame}
+    \frametitle{Advanced Inference Optimization: Speculative Decoding}
+    \begin{itemize}
+        \item **Challenge:** High inference latency from autoregressive decoding in LLMs.
+        \item **Speculative Decoding (SD):**
+        \begin{itemize}
+            \item Integrates an efficient "draft" model to predict multiple future tokens in parallel.
+            \item Larger target LLM then verifies these drafted tokens.
+            \item Substantially reduces overall decoding steps, achieving 2x to 4x speedups while preserving original output distributions.
+            \item Effectiveness depends on draft model efficiency, acceptance rate, and average token acceptance length.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Advanced Inference Optimization: Model Compression}
+    \begin{itemize}
+        \item **Purpose:** Address high inference costs and facilitate wider LLM adoption.
+        \item **Techniques:**
+        \begin{itemize}
+            \item **Quantization:** Reduces precision of numerical representations, leading to smaller models and faster inference.
+            \item **Pruning:** Removes less important connections or neurons, reducing complexity and computational footprint.
+            \item **Knowledge Distillation:** Transfers knowledge from a larger "teacher" model to a smaller "student" model, yielding "super-tiny" models with comparable performance at reduced cost.
+        \end{itemize}
+        \item **Shift in Optimization Target:** From "model size" to maximizing "effective compute" for real-world deployability.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Advanced Inference Optimization: Hardware-aware Optimization}
+    \tiny
+    \begin{itemize}
+        \item **Frameworks like Puzzle:** Accelerate LLM inference while maintaining capabilities, specifically optimizing for particular hardware (e.g., NVIDIA H100 GPUs).
+        \item **Decomposed Neural Architecture Search (NAS) Strategy:**
+        \begin{itemize}
+        \tiny
+            \item **Crafting "Puzzle Pieces" (Blockwise Local Distillation - BLD):** Trains alternative attention and FFN layers in parallel, mimicking parent blocks to create efficient components .
+            \item **Assembling the Puzzle Architecture (Mixed-Integer Programming - MIP):** Scores each "puzzle piece" for efficiency and searches for the most accurate architecture adhering to inference constraints (memory, latency, throughput) .
+            \item **Uptraining (Global Knowledge Distillation - GKD):** Final training phase where the reassembled model learns from the original parent model to address compatibility issues .
+        \end{itemize}
+        \item **Advantages:** Low optimization cost, data independence, non-uniform architectures, substantial speedups .
+        \item **Software-Hardware Interdependence:** Optimization frameworks are designed to exploit specific hardware capabilities, influencing overall performance.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Advanced Inference Optimization: Scalable Serving Frameworks}
+    \begin{itemize}
+        \item **Essential for Efficient Inference:** Given high computational demands.
+        \item **vLLM:**
+        \begin{itemize}
+            \item Optimized inference engine for large-scale LLMs.
+            \item High throughput and low latency via advanced scheduling, tensor parallelism, and continuous batching .
+            \item Simplifies scaling from single instances to distributed deployments without code modification .
+        \end{itemize}
+        \item **Ollama:**
+        \begin{itemize}
+            \item Flexible solution for running and interacting with LLMs efficiently.
+            \item Supports on-device and cloud-based deployments.
+            \item Seamless integration with AI applications, ensuring low-latency responses and optimal resource utilization.
+        \end{itemize}
+        \item **Combined Benefits:** Reduce bottlenecks, faster data retrieval, quicker token generation, efficient memory management, real-time monitoring.
+    \end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}{Table: Comparison of LLM Inference Optimization Techniques}
+    
+        \begin{figure}
+        \includegraphics[width=1.1\textwidth,center]{Images/table 1.PNG}
+        \end{figure}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Continuous Monitoring and Evaluation Strategies: Operational Metrics}
+    \begin{itemize}
+        \item **Critical Practice:** Continuous monitoring of LLM performance and behavior in production .
+        \item **Key Operational Metrics:**
+        \begin{itemize}
+            \item **Compute per Token/API Call:** Measures computing resources consumed (GPU memory, bandwidth, energy) to optimize allocation and control costs .
+            \item **Latency (Response Time):** Time for LLM to generate a response; crucial for real-time applications.
+            \item **Throughput:** Number of requests an LLM handles per time period, indicating scalability and efficiency.
+            \item **Error Rate:** Percentage of incorrect or failed outputs.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Continuous Monitoring and Evaluation Strategies: LLM-Specific Metrics}
+    \begin{itemize}
+        \item **Beyond Traditional ML Metrics:** Traditional metrics are often insufficient for generative LLMs.
+        \item **New Metrics and Approaches:**
+        \begin{itemize}
+            \item **Perplexity:** How well a language model predicts text; lower score indicates higher confidence.
+            \item **Accuracy:** Correctness of LLM outputs for specific tasks.
+            \item **Factuality:** Assesses accuracy and consistency with real-world knowledge.
+            \item **Semantic Similarity Metrics:** BERTScore and ROUGE capture nuanced semantic relationships.
+            \item **LLM-as-a-Judge:** Utilizes LLMs to evaluate other LLMs based on guidelines, providing more accurate evaluations.
+            \item **User Experience Metrics:** Monitors user responses, interaction length, repeated questions, and overall language/tone .
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{BERTScore}
+    
+        \begin{figure}
+        \includegraphics[width=1.1\textwidth,center]{Images/BertScore.PNG}
+        \end{figure}
+
+\end{frame}
+
+\begin{frame}{ROUGE}
+    
+        \begin{figure}
+        \includegraphics[width=1.1\textwidth,center]{Images/Rouge_Score.png}
+        \end{figure}
+
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Continuous Monitoring and Evaluation Strategies: Bias and Model Drift Mitigation}
+    \tiny
+    \begin{itemize}
+        \item **Model Drift:** LLMs are susceptible to performance degradation due to changes in data distribution or model behavior over time.
+        \begin{itemize}
+            \tiny
+            \item Lifelong learning mechanisms are critical for adaptation.
+            \item Specialized drift detection units (e.g., One-Class Concept Drift Detector - OCDD) identify semantic shifts.
+            \item "Adaptive safety" mechanisms detect and respond to novel threats and emergent behaviors.
+        \end{itemize}
+        \item **Bias:** LLMs frequently exhibit biases (e.g., favoring certain options, gender-specific preferences).
+        \begin{itemize}
+            \tiny
+            \item B-score: A novel metric to detect biases by analyzing single-turn vs. multi-turn answer distributions, without ground truth labels.
+            \item Mitigation strategies: Evaluate responses with swapped orders (position bias), ensure similar lengths (verbosity bias), avoid using the same LLM for evaluation (self-enhancement bias).
+            \item Ethical guidelines emphasize cleansing training datasets of biases.
+        \end{itemize}
+        \item **Trust Gap:** Black-box nature, bias, and hallucination create a trust gap, necessitating explainable evaluation methods.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Continuous Monitoring and Evaluation Strategies: Security Risks and HITL}
+    \tiny
+    \begin{itemize}
+        \item **Security Risks:** LLMs are vulnerable to jailbreaking, data poisoning, and PII leakage.
+        \begin{itemize}
+            \tiny
+            \item Contextual privacy protection (e.g., PrivacyMind) safeguards PII during inference .
+            \item Defense strategies: Careful pretraining corpus curation, conditional LLM pretraining, post-training alignment, content filters.
+            \item Watermarking strategies show promise for detecting AI-generated text and disinformation .
+        \end{itemize}
+        \item **Human-in-the-Loop (HITL) for Quality Assurance:**
+        \begin{itemize}
+            \tiny
+            \item Crucial for quality control, accuracy, and bias reduction.
+            \item Essential for data labeling and annotation.
+            \item Vital for evaluating LLM outputs, especially for subjective quality, factual correctness, and appropriateness.
+            \item Strategically employed in agentic systems to determine optimal human intervention stages.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\section{Understanding and Deploying Agentic AI}
+
+\begin{frame}
+    \frametitle{Grounded Explanation of Agentic AI}
+    \tiny
+    \begin{itemize}
+        \item **Evolution:** Moves beyond passive models to autonomous systems capable of reasoning, acting, and interacting with their environment.
+        \item **Autonomy:** Operates with a high degree of independence, performing complex tasks (hypothesis generation, experimental design, data analysis) without constant human oversight.
+        \item **Core Components:**
+        \begin{itemize}
+            \tiny
+            \item **Agents:** Central actors with roles, capabilities, behaviors, and knowledge models; intelligence from learning, planning, reasoning, decision-making.
+            \item **Environment:** External world agents sense and interact with.
+            \item **Interactions:** Communication and collaboration mechanisms among agents.
+        \end{itemize}
+        \item **Principles of Agency:** Identity, control, and capability to act on predefined goals.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{LLMs as the "Brain" of Agentic AI}
+    \tiny
+    \begin{itemize}
+        \item **Fundamental Role:** LLMs serve as the "brain" or orchestrator, providing advanced natural language understanding and generation.
+        \item **Enhancing Agentic Capabilities:**
+        \begin{itemize}
+            \tiny
+            \item **Tool Integration:** LLMs invoke external tools using natural-language descriptions, enabling access to new information and multi-step workflows.
+            \item **Planning and Multi-Stage Decision Making:** LLMs guide task decomposition, action sequencing, and dynamic action recognition based on environmental feedback.
+            \item **Memory and Reflection:** Agents reflect on past decisions, learn from interactions, generate new training states, and support long-term planning.
+        \end{itemize}
+        \item **Operationalization of Reasoning:** Agentic AI translates LLM reasoning into concrete, multi-step tasks in the real world.
+        \item **Multi-Agent Collaboration:** True power often stems from collaboration of multiple specialized agents, leading to emergent intelligent behavior.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Table: Core Components of Agentic AI and LLM's Enabling Role}
+    \scalebox{0.75}{
+    \tiny
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Agentic AI Core Component} & \textbf{Description of Component's Function} & \textbf{How LLMs Enable/Enhance this Component}  \\
+        \hline
+        \textbf{Reasoning} & Process information, draw conclusions & Advanced natural language understanding, logical inference.   \\
+        \hline
+        \textbf{Acting} & Execute decisions, perform operations. & Tool invocation, interaction with external systems, multi-step actions. \\
+        \hline
+        \textbf{Interacting} & Communication with other agents. & Natural communication, context understanding, coherent responses \\
+        \hline
+        \textbf{Planning} & Break down complex & Guide multi-stage decision-making.  \\
+        \hline
+        \textbf{Memory} & Store and retrieve past information & Supports persistent memory.  \\
+        \hline
+        \textbf{Tool Use} & Leverage external tools, APIs, or databases. & Formulates calls to external tools. \\
+        \hline
+        \textbf{Environment Perception} & Sensing and interpreting the external world. & Process diverse inputs.  \\
+        \hline
+    \end{tabular}
+    }
+\end{frame}
+
+\begin{frame}
+    \frametitle{Best Practices for Agentic AI Deployment: Orchestration Frameworks and Multi-Agent Systems}
+    \begin{itemize}
+        \item **Network of Specialized Agents:** Agentic AI often employs multiple AI agents, each for particular tasks, collaborating to automate complex workflows .
+        \item **Multi-Agent Systems (MAS):** Emerge when multiple AI agents cooperate to solve intricate problems more efficiently than a single agent .
+        \item **Orchestration Frameworks:** Crucial for managing and coordinating agent interactions.
+        \begin{itemize}
+            \item Examples: IBM watsonx Orchestrate, Microsoft Power Automate, LangChain .
+            \item Can involve centralized control (primary agent directs sub-agents) or decentralized approaches (agents make independent decisions/consensus) .
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Best Practices for Agentic AI Deployment: Ensuring Reliability and Scalability}
+    \begin{itemize}
+        \item **Reliability:**
+        \begin{itemize}
+            \item Agentic systems have unpredictable execution paths and variable resource requirements .
+            \item Requires robust checkpointing and recovery capabilities .
+            \item Challenges: "Decision Latitude" (agents act without fixed instructions), "Autonomy in Ambiguity" (incomplete information), "Cross-System Autonomy" (integrating across enterprise systems) .
+            \item Human oversight is crucial to minimize errors and align AI decisions with goals .
+            \item "Governance of autonomy" is needed to define boundaries, establish audit trails, and monitor decisions .
+        \end{itemize}
+        \item **Scalability:**
+        \begin{itemize}
+            \item Must scale efficiently from zero to thousands of concurrent sessions without manual capacity planning .
+            \item Effective orchestration dynamically allocates resources, prioritizes tasks, and responds to changing conditions.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Best Practices for Agentic AI Deployment: Implementing Safety Protocols and Ethical Guidelines}
+    \tiny
+    \begin{itemize}
+        \item **Ethical AI by Design:** Prioritizes ethical considerations from the outset.
+        
+        \begin{itemize}
+            \tiny
+            \item Principles: Respect for human autonomy, harm prevention, fairness, transparency, privacy, accountability .
+            \item Includes cleansing training datasets of biases and designing counteracting algorithms .
+        \end{itemize}
+        \item **AI Alignment:** Continuously aligns LLMs to defined rules and values (e.g., policy documents) through iterative development .
+        \item **Function-Calling Hallucination Detection:** Addresses misinterpretations leading to inappropriate tool selection or use .
+        \item **Detecting AI-Generated Text and Disinformation:** Countering malicious use (deepfakes, phishing) .
+        \item **Privacy and Data Protection:** Stringent data protection from design stage (minimization, encryption, anonymization, access control) .
+        \item **Compliance and Monitoring:** Adherence to regulations, continuous monitoring, and robust reporting .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Best Practices for Agentic AI Deployment: The Role of Human-Agent Collaboration}
+    \begin{itemize}
+        \item **Essential for Complex Tasks:** Augments LLM-based agents with human intuition and wisdom .
+        \item **Collaborative Paradigm:**
+        \begin{itemize}
+            \item Defines division of labor between humans and agents.
+            \item Identifies optimal stages for human intervention .
+            \item Manages proactive interruptions effectively .
+        \end{itemize}
+        \item **Conditional Automation Modes:** Allow humans to intervene when necessary, while agents handle most sub-tasks, leveraging synergistic potential.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Real-World Applications and Case Studies of Agentic AI: Overview}
+    \begin{itemize}
+        \item **Transforming Industries:** Automating complex workflows and enabling smarter, real-time operations .
+        \item **"Efficiency Multiplier":** Observed value proposition is its capacity to function as an efficiency multiplier within well-defined, complex, domain-specific processes .
+        \item **Focus for Adoption:** Demonstrating clear return on investment through automation and optimization of existing business processes .
+        \item **Hybrid AI Workforce:** Immediate future points towards agents handling routine/high-volume tasks, with humans for complex, ambiguous, ethical, or high-stakes decisions .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Real-World Applications and Case Studies of Agentic AI: Examples}
+    \tiny
+    \begin{itemize}
+        \item **Customer Service:** Intelligent escalation agents triage tickets, resolve queries, route complex cases, leading to reduced resolution times and enhanced personalization .
+        \item **Finance:** AI agents manage compliance workflows, gather transactional data, identify anomalies, and generate audit-ready documentation; analyze market trends for investment/risk decisions .
+        \item **Logistics:** Autonomous scheduling agents dynamically plan, adjust, and optimize delivery routes in real-time .
+        \item **Healthcare:** Virtual clinical assistants handle routine tasks (scheduling, reminders, risk alerts), improving care continuity and freeing staff.
+        \item **Retail/E-commerce:** Autonomous eCommerce assistants manage product listings, adjust pricing, provide support, and optimize marketing campaigns.
+        \item **Scientific Discovery:** Agentic AI systems autonomously perform literature review, hypothesis generation, experimental design, and data analysis.
+    \end{itemize}
+\end{frame}
+
+
+\section{Future Trends and Outlook in LLM Production}
+
+\begin{frame}
+    \frametitle{Future Trends: The Drive Towards Smaller, More Efficient Models}
+    \begin{itemize}
+        \item **Motivation:** High energy consumption and substantial computational resource demands of current large models, aligning with "Green AI" .
+        \item **Innovation:** New models demonstrate comparable performance to larger models at a fraction of the cost and lower inference expenses .
+        \item **Economic Viability:** Focus on efficiency makes LLM-powered applications more economically viable and environmentally sustainable .
+        \item **Adaptation Techniques:** Enable training of smaller models for efficient deployment across various environments .
+        \item **Democratization:** Efficiency and specialization lead to broader accessibility and economic viability for LLM technology .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Future Trends: Emergence of Multimodal LLMs in Production}
+    \begin{itemize}
+        \item **Transformation:** Rapid progress in Multimodal Large Language Models (MLLMs) is reshaping the AI landscape .
+        \item **Integration:** Combine pre-trained LLMs with specialized encoders for images, audio, and video .
+        \item **Richer Context Comprehension:** Leverages complementary information from diverse sources .
+        \item **Capabilities:** Retain reasoning and decision-making of traditional LLMs while empowering multimodal tasks (e.g., image-text understanding, video-text processing, speech/audio-text output) .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Future Trends: Edge AI Deployments for LLMs}
+    \begin{itemize}
+        \item **Growing Trend:** Deploying LLMs on edge devices to overcome centralized cloud processing limitations .
+        \item **Resource-Efficient Designs:** Involves pre-deployment optimization techniques and runtime enhancements .
+        \item **On-Device Applications:** Enables LLM use in personal, enterprise, and industrial scenarios .
+        \item **Benefits:** Reduced latency and enhanced data privacy by local data processing, minimizing cloud data transfer .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Future Trends: Advancements in Responsible AI and Ethical Governance}
+    \begin{itemize}
+        \item **Paramount for Societal Integration:** Responsible development and deployment of LLMs .
+        \item **Key Focus Areas:** Transparency, addressing inherent biases, and safeguarding data privacy throughout the lifecycle .
+        \item **Future Efforts:** Refining and securing models as much as scaling them up .
+        \item **Ethical Guidelines:** Emphasize respect for human autonomy, harm prevention, fairness, accountability by design, continuous monitoring, and regulatory compliance .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Future Trends: Human-AI Collaboration}
+    \begin{itemize}
+        \item **Increasingly Essential:** LLM-based human-agent collaboration for complex task-solving .
+        \item **Augmenting AI Capabilities:** Integrates human intuition and wisdom .
+        \item **Strategic Division of Labor:** Defines optimal stages for human intervention while minimizing it for overall efficiency.
+        \item **Synergistic Potential:** Leverages both human and machine intelligence for superior outcomes.
+        \item **Convergence:** Multimodal capabilities and agentic autonomy are converging, leading to more integrated intelligence.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{The Indispensable Role of APIs}
+    \begin{itemize}
+        \item APIs are the "critical bridge" connecting AI agents to external data, services, and tools.
+        \item Enable practical actions: populating CRMs, initiating workflows, financial transactions, real-time data retrieval.
+        \item APIs become the "action layer" for autonomous systems, requiring machine-interpretable contracts.
+        \item Agents must dynamically discover and understand APIs for autonomous workflow design.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Strategic Advantages of Well-Integrated AI Agent APIs}
+    \begin{itemize}
+        \item Remove data silos, ensuring seamless access to information.
+        \item Reduce human errors, enhance productivity, and improve customer experience.
+        \item Automate complex tasks, freeing up development resources.
+        \item Enable real-time decision-making and immediate responsiveness.
+        \item Seamless integration with existing systems is vital for efficiency.
+    \end{itemize}
+\end{frame}
+
+\section{Designing Agent-Centric APIs}
+
+\begin{frame}
+    \frametitle{Core API Design Principles for AI Integration}
+    \begin{itemize}
+        \item \textbf{Scalability}: Handle high loads and fluctuating demands (horizontal scaling, load balancing, caching).
+        \item \textbf{Flexibility}: Modular design for updates without system-wide impact.
+        \item \textbf{Extensibility}: Seamless integration of new capabilities (plugin systems, function-calling frameworks).
+        \item \textbf{Standardization \& Interoperability}: Well-defined interfaces and protocols (OpenAPI, consistent naming).
+        \item Driven by non-determinism and dynamic nature of AI agents.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Crafting Clear and Machine-Readable Endpoints}
+    \begin{itemize}
+        \item \textbf{OpenAPI Specification (OAS)}: Fundamental for outlining endpoints, methods, schemas, and authentication.
+        \item \textbf{Natural Language Descriptions}: Clear, conversational phrasing avoids technical jargon, aiding LLM understanding.
+        \item \textbf{Model Context Protocol (MCP) Servers}: Real-time interfaces for dynamic API discovery and authentication.
+        \item Hybrid approach: formal specs for reliability, natural language for context, and dynamic discovery for adaptability.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Modeling Data for Agent Observations, Actions, and Internal State}
+    \begin{itemize}
+        \item \textbf{JSON Schema}: Widely adopted for defining, annotating, and validating JSON documents.
+        \item \textbf{Observations}: Defines structure for multimodal sensory inputs (text, voice, video, sensor data).
+        \item \textbf{Actions}: Defines expected input/output formats for structured requests and responses.
+        \item \textbf{Internal State/Memory}: Structures short-term, long-term, episodic, and consensus memory.
+        \item Enables "schema-driven AI development" for predictability and reliability.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Ensuring Determinism and Consistency in API Responses}
+    \begin{itemize}
+        \item LLMs are inherently non-deterministic, producing varied results.
+        \item API layer must strive for deterministic responses to enable reliable agent planning.
+        \item Responses should be structured and predictable, even for empty results or errors.
+        \item API acts as a "determinism enforcer," ensuring predictable outputs for the agent.
+    \end{itemize}
+\end{frame}
+
+\section{Architectural Patterns for Agentic AI Systems}
+
+\begin{frame}
+    \frametitle{RESTful APIs: Strengths, Limitations, and Best Practices}
+    \begin{itemize}
+        \item \textbf{Strengths}: Statelessness for scalability, simplicity, wide adoption, good for one-shot commands.
+        \item \textbf{Limitations}: Rigidity, over-fetching of data (higher token consumption for LLMs), struggles with complex/multi-turn interactions, versioning challenges.
+        \item \textbf{Best Practices}: Clear, resource-based URLs; appropriate HTTP methods; pagination and filtering; "function calling" for natural language to API translation.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{GraphQL APIs: Enhancing Data Fetching Efficiency and Flexibility}
+    \begin{itemize}
+        \item Allows clients to request *exactly* the data needed, reducing over-fetching and under-fetching.
+        \item \textbf{Schema Introspection}: Agents can automatically discover data structures and operations.
+        \item \textbf{Strong Typing}: Aids AI agents in understanding data formats and constraints.
+        \item Reduces token consumption and improves efficiency for LLMs.
+        \item Ideal for real-time applications, diverse client requirements, and deeply nested data.
+        \item Supports "least privilege" at the data fetching layer for security.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Event-Driven Architectures (EDA): Real-time, Asynchronous Communication}
+    \begin{itemize}
+        \item Systems detect, process, manage, and react to real-time events.
+        \item \textbf{Benefits}: Loose coupling, parallel execution, resilience, real-time decision-making, simplified coordination, scalability.
+        \item Asynchronous programming (e.g., Python's \texttt{asyncio}) enhances performance for I/O-bound operations .
+        \item Patterns: Agent Broker (central hub) and Asynchronous Choreography (decentralized) .
+        \item Shifts from synchronous request-response to decentralized, reactive paradigm for autonomous AI.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Microservices Integration: Modularity and Performance}
+    \begin{itemize}
+        \item Decomposes monolithic applications into smaller, independent services.
+        \item \textbf{Benefits}: Modularity, independent scaling, fault isolation, technology diversity, improved performance .
+        \item Crucial for computational intensity of LLMs and specialized data access (e.g., vector databases).
+        \item Facilitates event-driven communication, enabling scalable, autonomous behavior.
+        \item Building advanced AI systems is fundamentally a distributed systems engineering challenge.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Comparative Analysis of API Architectural Patterns for AI Agents}
+    
+        \begin{figure}
+        \includegraphics[width=1.2\textwidth,center]{Images/table_2.PNG}
+        \end{figure}
+
+\end{frame}
+
+\section{Programming and Implementing Agent API Interactions}
+
+\begin{frame}
+    \frametitle{Integrating Large Language Models (LLMs) with External Tools}
+    \begin{itemize}
+        \item LLMs are the "brain" of an AI agent, augmented by modules for external interaction.
+        \item \textbf{Function Calling/Tool Use}: LLM identifies when external execution is needed, describes intent, and receives structured outputs.
+        \item Frameworks (LangChain, Strands Agents SDK, AutoGen, CrewAI, OpenAI Primitives) abstract complex logic for tool selection, parameter extraction, and response integration.
+        \item Programming shifts from direct API calls to configuring frameworks and crafting prompts.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Managing Agent Memory and Contextual State via APIs}
+    \begin{itemize}
+        \item Essential for reasoning over time, learning, and personalization.
+        \item \textbf{Types of Memory}: Short-term (local), long-term, episodic, consensus.
+        \item Long-term memory often offloaded to \textbf{vector databases} (Pinecone, FAISS, Chroma, Weaviate) for semantic retrieval.
+        \item APIs provide seamless access to vector stores for relevant historical data.
+        \item \textbf{State Machines (FSM)}: Track agent's mode, subtask, or planning step, persisted in caches/databases.
+        \item Memory APIs are core cognitive components, facilitating semantic search and context injection.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Input Validation, Preprocessing, and Output Optimization}
+    \begin{itemize}
+        \item \textbf{Input Validation}: Ensures clean, structured data for AI models, preventing client errors.
+        \item \textbf{Preprocessing}: Transforms raw data (e.g., text cleaning, embedding generation) to improve AI accuracy.
+        \item \textbf{Output Optimization}:
+        \begin{itemize}
+            \item \textbf{Structured Output}: Forcing LLMs to produce JSON via JSON Schema for seamless data exchange and validation.
+            \item \textbf{Model Compression/Hardware Acceleration}: For quick response times.
+            \item \textbf{Caching}: Reduces redundant model inferences.
+            \item \textbf{Batch Processing}: Processes multiple inputs in a single request for efficiency.
+        \end{itemize}
+        \item API layer acts as a "data integrity pipeline" for AI agents.
+    \end{itemize}
+\end{frame}
+
+\section{Ensuring Robustness and Handling Errors}
+
+\begin{frame}
+    \frametitle{Implementing Idempotency for Safe API Retries}
+    \begin{itemize}
+        \item \textbf{Idempotency}: Operation can be applied multiple times without unintended side effects.
+        \item Crucial for AI agents due to common failures and retries in distributed systems.
+        \item Prevents duplicate charges, redundant data entries, and system inconsistencies.
+        \item Implementation: Use an \textbf{idempotency key} (unique identifier) and an \textbf{idempotency layer} .
+        \item Standard HTTP methods like \texttt{GET}, \texttt{PUT}, \texttt{DELETE} are inherently idempotent .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Designing Comprehensive Error Handling and Consistent Error Responses}
+    \begin{itemize}
+        \item Improves user experience and provides feedback for agent reasoning/recovery.
+        \item Avoid vague messages; return \textbf{consistent HTTP status codes} and \textbf{structured JSON error objects} .
+        \item Error messages must be \textbf{clear and actionable}, enabling agent self-correction.
+        \item API error design acts as a "diagnostic guide" for the AI.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Strategies for Graceful Degradation and Fault Tolerance}
+    \begin{itemize}
+        \item \textbf{Graceful Degradation}: Maintain usefulness even when ideal conditions are not met (partial answers, fallbacks).[29, 35, 52]
+        \item \textbf{Fault Tolerance Mechanisms}:
+        \begin{itemize}
+            \item Retry Logic (with exponential backoff) .
+            \item Checkpointing (resume from last successful step).
+            \item Circuit Breakers (halt activity when thresholds crossed) .
+            \item Bulkheads (isolate failures) .
+            \item Fallback Strategies (switch to backup models/services) .
+            \item Event-Driven Architecture (decouple steps, re-queue messages) .
+            \item Compensation (reverse prior actions in multi-step transactions).
+        \end{itemize}
+        \item Robust monitoring and alerts are indispensable.
+    \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Essential Error Handling and Resilience Strategies for AI Agent APIs}
+    
+        \begin{figure}
+        \includegraphics[width=1\textwidth,center]{Images/table_3.PNG}
+        \end{figure}
+
+\end{frame}
+
+\section{Securing AI Agent APIs}
+
+\begin{frame}
+    \frametitle{Authentication and Authorization Protocols}
+    \begin{itemize}
+        \item \textbf{Authentication}: Verifying identity of AI agents/systems (API keys, tokens, digital certificates).
+        \item \textbf{OAuth 2.0 and OpenID Connect (OIDC)}: Recommended for M2M authentication; provide scoped, short-lived, revocable tokens .
+        \item \textbf{Authorization}: Determines specific actions an agent is permitted to perform after authentication.
+        \item Integrates AI agent security into existing enterprise IAM systems .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Implementing Least Privilege and Granular Access Controls}
+    \begin{itemize}
+        \item \textbf{Least Privilege}: Agents granted minimum necessary access, reducing "blast radius" .
+        \item \textbf{Resource-level permissions}: Fine-grained control to specific records/components .
+        \item \textbf{Dynamic Permissions}: Access needs evolve at runtime; requires adaptive, context-aware authorization .
+        \item \textbf{Role-Based Access Control (RBAC)}: Assign roles to agents to restrict access.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Secure Secrets Management and Credential Rotation}
+    \begin{itemize}
+        \item Agents should \textbf{never hard-code long-lived passwords or API keys} .
+        \item Use \textbf{secure secrets managers} (Azure Key Vault, AWS Secrets Manager, HashiCorp Vault) .
+        \item Implement regular \textbf{key rotation mechanisms} for all credentials .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Mitigating Prompt Injection and Data Leakage}
+    \begin{itemize}
+        \item \textbf{Prompt Injection}: Adversarial inputs manipulating agent behavior.
+        \item Mitigation: Validate prompt structures, limit external instructions .
+        \item \textbf{Data Leakage Prevention}: Avoid unintentional exposure of sensitive data.
+        \item Mitigation: Control context windows, apply content filters, output scanning, PII detection, data masking/redaction.
+        \item Requires "AI-native" security layers beyond traditional API security.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Rate Limiting, Abuse Prevention, and Anomaly Detection}
+    \begin{itemize}
+        \item \textbf{Rate Limiting}: Critical for preventing abuse and ensuring fair resource allocation; AI agents can generate thousands of requests/second .
+        \item \textbf{Abuse Prevention}: Rule-based and AI-driven filters to block harmful outputs.
+        \item \textbf{Anomaly Detection}: Identify suspicious traffic (spikes, access to high-risk endpoints, unexpected sources) .
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Adopting a Zero-Trust Security Model}
+    \begin{itemize}
+        \item "Never trust, always verify," even within internal networks .
+        \item Every request between agents or agent-to-service must be explicitly verified .
+        \item Requires strict identity verification, fine-grained access controls, continuous monitoring .
+        \item \textbf{Network Segmentation}: Confine agents to minimum network surface area (isolated subnets/containers) .
+        \item Crucial for containing breaches and maintaining control over autonomous entities.
+    \end{itemize}
+\end{frame}
+
+\section{Deployment, Monitoring, and Versioning}
+
+\begin{frame}
+    \frametitle{Deployment Strategies: Containerization and Cloud-Native Platforms}
+    \begin{itemize}
+        \item \textbf{Containerization (Docker)}: Simplifies deployment by packaging agents and dependencies into isolated, portable units.
+        \item \textbf{Cloud-Native Platforms}: Provide inherent scalability, supporting seamless transitions from prototypes to production.
+        \item Support diverse environments (VMs, serverless functions, specialized AI agent services).
+        \item Offer robust autoscaling features for unpredictable AI agent traffic.
+        \item Building and deploying AI agents is fundamentally a DevOps challenge.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Comprehensive Observability: Tracing, Logging, and Performance Monitoring}
+    \begin{itemize}
+        \item Essential for non-deterministic AI agent workflows.
+        \item \textbf{Tracing}: End-to-end visibility into agent behavior and decisions (planning, tool invocation, output).
+        \item Tools like Langfuse and Arize AX offer deep tracing capabilities for AI agent workflows.
+        \item \textbf{Logging}: Record all API activity, suspicious patterns, latency metrics, and agent communications for auditing.
+        \item \textbf{Performance Monitoring}: Track usage analytics, popular endpoints, parameter patterns, latency, and costs in real-time.
+        \item Focus on "explainable AI operations" to understand *why* an agent made a decision.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Evaluating and Optimizing Agent Behavior in Production}
+    \begin{itemize}
+        \item Continuous evaluation and optimization are vital for quality and effectiveness.
+        \item Evaluation frameworks (Arize AX, OpenAI primitives) assess agent performance.
+        \item Monitor real-time cost and latency, broken down by user, session, geography, and model version.
+        \item Track token usage to manage LLM operational expenses.
+        \item Implement effective feedback loops (response ratings, issue reporting) for continuous improvement .
+        \item Incrementally update evaluation datasets with new edge cases from production.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{API Versioning Strategies and Best Practices for Agentic Systems}
+    \begin{itemize}
+        \item Critical for managing API evolution without breaking existing functionality.
+        \item Prioritize backward compatibility whenever possible.
+        \item \textbf{Common Strategies}:
+        \begin{itemize}
+            \item URL Path Versioning (\texttt{/v1/products}).
+            \item Query Parameter Versioning (\texttt{/products?version=1}).
+            \item Header Versioning (\texttt{Accepts-version: 1.0}).
+            \item Media Type Versioning (\texttt{application/vnd.myapi.v2+json}).
+        \end{itemize}
+        \item \textbf{Best Practices}: Plan early, use semantic versioning, clear communication, gradual deployment, design for extensibility .
+        \item \textbf{Model Context Protocol (MCP)}: Enables dynamic discovery of API schema, allowing agents to adapt in real-time .
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{API Versioning Strategies and Their Impact on AI Agents}
+    
+        \begin{figure}
+        \includegraphics[width=1\textwidth,center]{Images/table_4.PNG}
+        \end{figure}
+
+\end{frame}
+
+
+\section{Conclusion and Future Outlook}
+
+\begin{frame}
+    \frametitle{Recap of Key Principles for Successful AI Agent API Implementation}
+    \begin{itemize}
+        \item Machine Readability and Dynamic Discovery (OpenAPI, JSON Schema, MCP)
+        \item Scalability, Flexibility, and Extensibility (EDA, Microservices)
+        \item Robust Memory Management (Vector Stores, State Machines)
+        \item Data Integrity and Structured Formats (Input Validation, Preprocessing, Structured Output)
+        \item Comprehensive Fault Tolerance (Idempotency, Error Handling, Resilience Strategies)
+        \item Zero-Trust Security Model (Authentication, Authorization, Prompt Injection, Data Leakage)
+        \item Comprehensive Observability and Continuous Improvement (Tracing, Logging, Monitoring, Evaluation)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Emerging Trends and Future Directions}
+    \begin{itemize}
+        \item \textbf{Composable AI and Multi-Agent Ecosystems}: Dynamic orchestration of AI services, inter-agent communication protocols.
+        \item \textbf{AI-Powered API Documentation}: Automatic generation, interactive documentation, real-time feedback.
+        \item \textbf{New API Protocols and Architectures}: Optimized for AI workloads (graph-based, streaming models).
+        \item \textbf{Ethical AI and Governance}: Embedding ethical guidelines and compliance into API design.
+        \item \textbf{Human-Agent Collaboration}: Focus on complementary capabilities and human-in-the-loop interventions.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+        \item Deploying LLMs into production is complex but transformative, requiring understanding of LLMs, LLMOps, optimization, and monitoring.
+        \item Agentic AI is a pivotal shift, making LLMs autonomous decision-makers and actors for complex, multi-step problems.
+        \item Success hinges on managing costs, latency, drift, and ethical considerations through:
+        \begin{itemize}
+            \item Specialized architectural patterns (DAGs, modular designs).
+            \item Cutting-edge inference optimizations (Speculative Decoding, hardware-aware NAS).
+            \item Continuous evaluation with human-in-the-loop oversight.
+        \end{itemize}
+        \item Future trends include smaller, more efficient, specialized, and multimodal LLMs, with increasing edge deployments.
+        \item Responsible AI and human-AI collaboration will define the next era of intelligent automation, demanding interdisciplinary effort and proactive ethical governance.
+    \end{itemize}
+\end{frame}
+
+
+\end{document}
+
+

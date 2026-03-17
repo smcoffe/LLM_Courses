@@ -1,0 +1,592 @@
+\documentclass{beamer}       % print frame + notes
+%\documentclass[notes=only]{beamer}   % only notes
+\setbeamertemplate{navigation symbols}[horizontal]
+%\documentclass[aspectratio=169]{beamer}
+\usepackage{pgfpages}
+% Comment out both 'show notes' commands to hide notes
+%\setbeameroption{show notes on second screen=right}
+%\setbeameroption{show notes}
+\usetheme{d2s}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{tcolorbox}
+\usepackage[export]{adjustbox}
+\usepackage{listings}  
+\usepackage{xcolor}
+\usepackage{svg}
+\usepackage{upquote}
+\usepackage{emoji}
+\setemojifont{TwemojiMozilla}
+
+\newcommand{\huggingface}{HuggingFace\emoji{hugging-face} }
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{numbercolor}{rgb}{0.5,0.5,0.5}
+\definecolor{stringcolor}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{numbercolor},
+    stringstyle=\color{stringcolor},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\newcommand{\monthyeardate}{\ifcase \month \or January\or February\or March\or %
+April\or May \or June\or July\or August\or September\or October\or November\or %
+December\fi, \number \year} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Information for Title Slide %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title[]{Agentic AI Bootcamp}
+\subtitle[] % Text in bracket will be in footline
+{LLM Fundamentals}
+\author[] % Text in bracket will be in footline, empty brackets to hide from footline
+{MAJ Sean Coffey} % Separate authors with \and
+\institute
+{Army Cyber Institute, U.S. Military Academy}
+\date{\monthyeardate}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title Slide %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\DivisionLogo
+\begin{frame}[plain,noframenumbering]
+    \titlepage
+    \note{Welcome to the course! I hope you get something good out of this, but feel free to provide your honest feedback at the end so we can make this better, because this is our first time teaching this material and we can always learn and improve.
+    }
+\end{frame}
+}
+
+
+
+% --- Slide 1: Learning Objectives ---
+\begin{frame}{Learning Objectives}
+    By the end of this module, you will be able to:
+    \begin{itemize}
+        \item \textbf{Demystify Transformers:} Understand the Attention mechanism as a weighting system.
+        \item \textbf{Master Tokenization:} Explain how sub-word encoding affects logic and cost.
+        \item \textbf{Inference Dynamics:} Optimize performance using Temperature, Top-P, and Frequency Penalties.
+        \item \textbf{Model Selection:} Contrast reasoning-heavy models with edge-optimized variants.
+    \end{itemize}
+\end{frame}
+
+% --- Slide 2: The Transformer Architecture ---
+\begin{frame}{The Transformer: The Core of the Agent}
+    \centering
+    
+    \begin{itemize}
+        \item \textbf{Self-Attention:} The ability to weigh the relevance of distant words (e.g., matching a pronoun to a noun 500 words earlier).
+        \item \textbf{Context Window:} The "Short-term Memory" limit. If a task exceeds this, the agent "forgets" the start of the goal.
+        \item \textbf{Next-Token Prediction:} LLMs don't "know" facts; they calculate the statistical probability of the next sequence.
+    \end{itemize}
+\end{frame}
+
+% --- Slide 3: Tokenization: The Numeric Language ---
+\begin{frame}{Tokenization: How AI Reads}
+    \begin{block}{What is a Token?}
+        A mathematical representation of characters. On average, 1,000 tokens $\approx$ 750 words.
+    \end{block}
+    \vspace{0.3cm}
+    \textbf{Why it matters for Agents:}
+    \begin{itemize}
+        \item \textbf{Math \& Spelling:} Models struggle with "How many 'R's are in Strawberry?" because they see tokens, not letters.
+        \item \textbf{Efficiency:} High-density code or foreign languages use more tokens, increasing latency and cost.
+        \item \textbf{Structured Output:} Validating JSON requires precise token placement.
+    \end{itemize}
+\end{frame}
+
+% --- Slide 4: Inference Parameters ---
+\begin{frame}{Steering the Engine: Inference Parameters}
+    \begin{itemize}
+        \item \textbf{Temperature (0.0 -- 2.0):} 
+            \begin{itemize}
+                \item $0.0$: Deterministic. Best for tool-calling and code.
+                \item $1.0+$: Creative/Random. Best for brainstorming.
+            \end{itemize}
+        \item \textbf{Top-P (Nucleus Sampling):} Limits the model to a "pool" of most likely tokens.
+        \item \textbf{Stop Sequences:} Essential for agents to signal the end of a thought or the beginning of a tool call.
+    \end{itemize}
+\end{frame}
+
+% --- Slide 5: The 2026 Model Landscape ---
+\begin{frame}{Choosing the Right "Brain"}
+    \begin{table}[]
+        \centering
+        \begin{tabular}{@{}lll@{}}
+            \toprule
+            \textbf{Model Class} & \textbf{Best For...} & \textbf{Examples} \\ \midrule
+            \textbf{Reasoning Models} & Complex Logic / Planning & Gemini 1.5 Pro, GPT-o1 \\
+            \textbf{General Purpose} & Tool Use / Transformation & GPT-4o, Claude 3.5 Sonnet \\
+            \textbf{Small Language Models} & High Speed / Edge Use & Llama 3.1 8B, Phi-3 \\
+            \textbf{Embedding Models} & Vector Search / RAG & text-embedding-3-large \\ \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+
+% ----------------------
+\section{Introduction}
+% ----------------------
+\begin{frame}{The Rise of LLMs and Transformers}
+  \begin{itemize}
+    \item Large Language Models (LLMs) revolutionized NLP with their generative and understanding capabilities.
+    \item Core innovation: \textbf{Transformer architecture}.
+    \item Displaces RNNs and LSTMs due to parallelizability and long-range dependency handling.
+  \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{From Recurrence to Attention: A Paradigm Shift}
+  \begin{itemize}
+    \item RNNs suffer from sequential bottlenecks and poor long-range context.
+    \item Transformers enable parallel processing \& direct contextual access.
+    \item Self-attention mechanism eliminates need for recurrence.
+  \end{itemize}
+  \includegraphics[width=0.9\linewidth]{Images/renn.png}
+\end{frame}
+
+
+\section{Transformers}
+\begin{frame}{What are Transformers?}
+\centering
+    \includegraphics[width=\textwidth]{Images/transformer.png}
+\end{frame}
+
+\note[itemize]{
+\item Attention is all you need. Previous state of the art architectures were based on recurrent neural networks or convolutional neural networks, but the best ones included an attention mechanism. 
+\item The transformer removes the recurrence and convolutional layers, relying solely on attention and feed forward networks.
+\item What about the transformer makes it revolutionary? We can parallelize inputs and process the blocks of text with fewer dependencies than recurrent neural networks. 
+}
+
+\begin{frame}{Transformer Components Summary}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Component} & \textbf{Function} \\
+    \midrule
+    Encoder & Contextualizes input tokens \\
+    Decoder & Generates output using encoder + prior outputs \\
+    Multi-Head Attention & Captures multiple relationships \\
+    Cross-Attention & Links encoder outputs to decoder \\
+    Positional Encoding & Adds position info to inputs \\
+    FFN & Position-wise feedforward networks \\
+    Residual \& Norm & Helps gradient flow, stabilizes training \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Existing Transformer Models}
+    \begin{itemize}
+        \note[item]{From scratch vs pre-trained vs pre-trained with fine-tuning}
+        \item BERT (Bidirectional Encoder Representations from Transformers) \note[item]{BERT is encoder only}
+        \item GPT (Generative Pretrained Transformer) \note[item]{GPT is decoder only}
+        \item BART (Bidirectional and Auto-Regressive Transformers) 
+        \item T5 (Text-to-Text Transfer Transformer) \note[item]{T5 and BART are encoder-decoder}
+        \note[item]{Be aware of bias in pre-trained models, even ones that aren't trained on the entire internet (good and bad), and fine-tuning can't erase.}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Tokenization}
+\begin{itemize}
+    \item \textbf{Definition:} Process of breaking text into units (tokens).
+    \item \textbf{Granularity:} Can be words, subwords, or characters.
+    \item \textbf{Importance:} Essential for converting raw text into model-understandable input.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Tokenization}
+\centering
+\includegraphics[width=1\textwidth]{Images/tokenizer1.PNG}
+\end{frame}
+
+\begin{frame}
+\frametitle{Tokenization}
+\centering
+\includegraphics[width=1\textwidth]{Images/tokenizer2.PNG}
+\end{frame}
+
+
+% Slide 3: Dictionary
+\begin{frame}
+\frametitle{Dictionary (Vocabulary)}
+\begin{itemize}
+    \item \textbf{Role:} Maps tokens to unique indices.
+    \item \textbf{Size:} Typically limited by frequency and computational constraints.
+    \item \textbf{Usage:} Serves as the basis for embedding lookup.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Embedding + Positional Encoding}
+\begin{figure}
+    \centering
+    \includegraphics[width=.8\textwidth]{Images/word2vec.png}
+\end{figure}
+\end{frame}
+\note[itemize]{
+    \item Example of word2vec embeddings. 
+    \item Notice how it tries to capture similarities between words
+    \item Cat + Kitten are very close, and man and women have similar relative positions as king and queen.
+    \item See youtube video for 5 minute positional embeddings explanation.
+
+}
+
+
+\begin{frame}
+\frametitle{Word Vector Embedding}
+\begin{itemize}
+    \item \textbf{Definition:} Representing words as dense, continuous vectors.
+    \item \textbf{Purpose:} Capture semantic and syntactic properties.
+    \item \textbf{Learning:} Derived from large text corpora using algorithms like Word2Vec or GloVe.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/embed0.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/embed1.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/embed2.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/embed3.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/embed4.png}
+\end{frame}
+
+% ----------------------
+\section{Positional Encoding}
+% ----------------------
+\begin{frame}{The Need for Positional Encoding}
+  \begin{itemize}
+    \item Self-attention is permutation-invariant.
+    \item Positional encoding introduces order.
+    \item Uses sinusoidal functions or learnable vectors.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Embedding + Positional Encoding}
+\begin{figure}
+    \centering
+    \includegraphics[width=.8\textwidth]{Images/word2vec.png}
+\end{figure}
+\end{frame}
+\note[itemize]{
+    \item Example of word2vec embeddings. 
+    \item Notice how it tries to capture similarities between words
+    \item Cat + Kitten are very close, and man and women have similar relative positions as king and queen.
+    \item See youtube video for 5 minute positional embeddings explanation.
+
+}
+
+\begin{frame}{Positional Encoding}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{Images/PosEnc1.PNG}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Positional Encoding}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{Images/PosEnc2.PNG}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Positional Encoding}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{Images/PosEnc3.PNG}
+\end{figure}
+\end{frame}
+
+
+
+% ------------------------------
+\section{Deconstructing Self-Attention}
+% ------------------------------
+\begin{frame}{The Intuition Behind Self-Attention}
+  \begin{itemize}
+    \item Contextualizes each word by referencing others.
+    \item Replaces static word vectors with dynamic, contextual ones.
+    \item Enables disambiguation (e.g., ``mole'' in different contexts).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans1.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans2.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans3.png}
+\end{frame}
+
+%QKV here
+
+
+\begin{frame}{QKV Attention Mechanism}
+  \begin{itemize}
+    \item Query (Q): the token to be contextualized.
+    \item Key (K): describes available tokens.
+    \item Value (V): actual token content.
+  \end{itemize}
+\end{frame}
+
+
+
+
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans4.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans5.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans6.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans7.png}
+\end{frame}
+
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans9.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans10.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans11.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans12.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans13.png}
+\end{frame}
+
+\begin{frame}{Word Vector Embedding}
+    \includegraphics[width=\textwidth]{Images/trans14.png}
+\end{frame}
+
+\begin{frame}{Scaled Dot-Product Attention}
+  \begin{itemize}
+    \item Compute dot products of Q and K.
+    \item Scale and apply softmax for weights.
+    \item Multiply weights by V to get output.
+  \end{itemize}
+  \[ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V \]
+\end{frame}
+
+
+
+
+
+
+% ----------------------
+\section{Multi-Head Attention}
+% ----------------------
+
+
+% Slide 6: Multi-Head Attention
+\begin{frame}
+\frametitle{Multi-Head Attention}
+\begin{itemize}
+    \item \textbf{Concept:} Uses multiple attention heads in parallel.
+    \item \textbf{Benefit:} Captures diverse relationships from different representation subspaces.
+    \item \textbf{Process:} Each head performs attention separately, then results are concatenated and linearly transformed.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Multi Headed Attention}
+    \includegraphics[width=\textwidth]{Images/mh1.png}
+\end{frame}
+
+\begin{frame}{Multi Headed Attention}
+    \includegraphics[width=\textwidth]{Images/mh2.png}
+\end{frame}
+
+\begin{frame}{Multi Headed Attention}
+    \includegraphics[width=\textwidth]{Images/mh3.png}
+\end{frame}
+
+
+% Slide 7: Multi-Layer Perceptron (MLP)
+\begin{frame}
+\frametitle{Multi-Layer Perceptron}
+\begin{itemize}
+    \item \textbf{Role:} Feed-forward network applied after attention layers.
+    \item \textbf{Structure:} Consists of one or more fully connected layers.
+    \item \textbf{Purpose:} Provides non-linear transformations and enhances model capacity.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Multi-Layer Perceptron}
+    \includegraphics[width=\textwidth]{Images/mlp1.png}
+\end{frame}
+
+\begin{frame}{Multi-Layer Perceptron}
+    \includegraphics[width=\textwidth]{Images/mlp2.png}
+\end{frame}
+
+% Slide 8: Context Length
+\begin{frame}
+\frametitle{Context Length}
+\begin{itemize}
+    \item \textbf{Definition:} Maximum number of tokens the model considers in a single input.
+    \item \textbf{Significance:} Limits the extent of dependencies that can be modeled.
+    \item \textbf{Implication:} Affects memory usage and computational complexity.
+\end{itemize}
+\end{frame}
+
+\section{Transformers}
+\begin{frame}{What are Transformers?}
+\centering
+    \includegraphics[width=\textwidth]{Images/transformer.png}
+\end{frame}
+
+\note[itemize]{
+\item Attention is all you need. Previous state of the art architectures were based on recurrent neural networks or convolutional neural networks, but the best ones included an attention mechanism. 
+\item The transformer removes the recurrence and convolutional layers, relying solely on attention and feed forward networks.
+\item What about the transformer makes it revolutionary? We can parallelize inputs and process the blocks of text with fewer dependencies than recurrent neural networks. 
+}
+
+% Training LLMs
+\begin{frame}{Step 5: Training LLMs}
+  \begin{itemize}
+    \item Self-Supervised Learning: massive unlabeled corpora.
+    \item Masked LM: predict masked tokens (e.g., BERT).
+    \item Causal LM: predict next token (e.g., GPT).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Supervised Fine-tuning and RLHF}
+  \begin{itemize}
+    \item SFT: aligns model with tasks and instructions.
+    \item RLHF: aligns output with human preferences.
+    \item Human feedback trains a reward model.
+  \end{itemize}
+\end{frame}
+
+% Slide 9: Beam Search, Temperature, etc.
+\begin{frame}
+\frametitle{Beam Search \& Temperature}
+\begin{itemize}
+    \item \textbf{Beam Search:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Decoding strategy to find high-probability output sequences.
+        \item \textbf{Mechanism:} Maintains multiple candidate sequences during generation.
+    \end{itemize}
+    \item \textbf{Temperature:}
+    \begin{itemize}
+        \item \textbf{Definition:} Parameter controlling randomness in prediction.
+        \item \textbf{Effect:} Lower temperature makes predictions more deterministic; higher values increase diversity.
+    \end{itemize}
+    \item \textbf{Other Techniques:} Sampling, top-k, and nucleus (top-p) sampling.
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Controlling Output}
+\begin{itemize}
+    \item Greedy Search
+    \item Beam Search
+    \item Top-K Sampling
+    \item Top-P (nucleus) Sampling
+    \item Temperature Parameter
+\end{itemize}
+
+\end{frame}
+\note[itemize]{
+\scriptsize
+    \item Greedy Search: Greedy search is the simplest decoding method. It selects the word with the highest probability as its next word
+    \item Beam Search: Beam Search reduces the risk of missing hidden high probability word sequences by keeping the most likely num beams of hypotheses at each time step and eventually choosing the hypothesis that has the highest overall probability
+    \item Top-K Sampling:  In Top-K sampling, the K most likely next words are filtered and the probability mass is redistributed among only those K next words. GPT2 adopted this sampling scheme, which was one of the reasons for its success in story generation.
+    \item Top-P (nucleus) Sampling: Instead of sampling only from the most likely K words, in Top-p sampling chooses from the smallest possible set of words whose cumulative probability exceeds the probability p. The probability mass is then redistributed among this set of words. 
+    \item Temperature Parameter: This parameter adjusts the confidence of predictions. A high temperature makes the output more random, while a low temperature makes the model more confident and deterministic in its predictions. As temperature approaches 0 it becomes greedy decoding
+}
+
+\begin{frame}{Greedy Search}
+
+\begin{figure}
+    \includegraphics[width=0.75\textwidth,center]{Images/greedy_search.png}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Beam Search}
+
+\begin{figure}
+    \includegraphics[width=0.75\textwidth,center]{Images/beam_search.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Top-K Sampling}
+
+\begin{figure}
+    \includegraphics[width=0.7\textwidth,center]{Images/top_k_sampling.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Top-P Sampling}
+
+\begin{figure}
+    \includegraphics[width=0.65\textwidth,center]{Images/top_p_sampling.png}
+\end{figure}
+\end{frame}
+
+% Slide 10: Summary
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+    \item Large Language Models rely on robust representations (embeddings and dictionaries).
+    \item Attention mechanisms, including multi-head attention, enhance context understanding.
+    \item Decoding techniques like beam search and temperature tuning are vital for controlled text generation.
+\end{itemize}
+\end{frame}
+
+\end{document}
+
+
